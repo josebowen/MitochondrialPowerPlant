@@ -1,0 +1,10 @@
+import puppeteer from 'puppeteer-core';
+const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const p = await b.newPage(); await p.setViewport({ width: 1600, height: 900 });
+await p.goto('file://' + process.cwd() + '/index.html?dtcap=0.3');
+await new Promise((r) => setTimeout(r, 1500));
+const r = await p.evaluate(async () => { __demo.go('brief', 0); __demo.warm(15);
+  const hit = (sel) => { const el = document.querySelector(sel), q = el.getBoundingClientRect(); const top = document.elementFromPoint(q.x + q.width / 2, q.y + q.height / 2); top.click(); return top === el; };
+  const a = [hit('input[name=ph][value=up]'), hit('input[name=syn][value=down]'), hit('input[name=o2][value=down]')];
+  const dis = document.querySelector('[data-act=run]').disabled; document.querySelector('[data-act=run]').click(); return { a, dis, name: __demo.state().name }; });
+console.log(JSON.stringify(r)); await b.close();

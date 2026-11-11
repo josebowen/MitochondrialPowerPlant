@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Mitochondrial Power Plant</title>
+<meta name="description" content="Shrink to the size of a molecule and keep a cell's power plant running. A short simulation built on OpenStax Biology 2e, Chapter 7.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>/*CSS*/</style>
+</head>
+<body data-state="title">
+<canvas id="gl" role="img" aria-label="Live 3D view. First a mitochondrion inside a cell, then its inner membrane at molecular scale with the electron transport chain and ATP synthase."></canvas>
+<div id="labels" aria-hidden="true"></div>
+<div id="heat" aria-hidden="true"></div>
+<div id="flash" aria-hidden="true"></div>
+
+<main id="title">
+  <div class="in">
+    <p class="kick">Introductory biology · cellular respiration</p>
+    <h1>The Mitochondrial <em>Power Plant</em></h1>
+    <p class="sub">Shrink to the size of a molecule and keep a cell's power plant running. Then break it three ways and predict what happens.</p>
+    <div class="row"><button class="btn pri big" data-act="begin">Start the shift</button><button class="btn" data-act="about">About this demo</button></div>
+    <p class="foot">5 to 10 minutes · Built on OpenStax, Biology 2e, Chapter 7 · Best on a large screen</p>
+  </div>
+</main>
+<button id="skip" class="btn sm" data-act="skipDescent">Skip</button>
+
+<header id="top">
+  <span class="brand">The Mitochondrial Power Plant</span>
+  <ol id="steps" aria-label="Progress"><li>Orientation</li><li>Cyanide</li><li>Uncoupler</li><li>No oxygen</li><li>Debrief</li></ol>
+  <span class="sp"></span>
+  <div class="tools"><button class="btn sm" data-act="lab">Free lab</button><button class="btn sm" id="soundBtn" data-act="sound" aria-pressed="true">Sound on</button><button class="btn sm" data-act="about">About</button></div>
+</header>
+
+<section id="hud" aria-label="Plant gauges, shown as percent of the normal steady state">
+  <div id="gauges"></div>
+  <canvas id="chart" aria-hidden="true"></canvas>
+  <div class="tick">White mark = normal. Chart shows the last 45 seconds.</div>
+  <div class="hudfoot"><span>ATP released: <b id="atpcount">0</b></span><span class="cyto" title="Glycolysis and fermentation happen in the cytosol, outside the mitochondrion">Cytosol: 2 ATP per glucose <span class="lac"><i id="lacfill"></i></span><span id="lactxt">Lactate: low</span></span></div>
+</section>
+
+<aside id="panel" aria-label="Mission panel"><div id="panelBody" aria-live="polite"></div></aside>
+<div id="caption" role="status"></div>
+
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="aboutH" hidden>
+  <div class="card"><button class="btn sm" id="modalClose" data-act="closeAbout">Close</button><div id="aboutBody"></div></div>
+</div>
+<script>/*JS*/</script>
+</body>
+</html>
