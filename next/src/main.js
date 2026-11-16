@@ -1,4 +1,5 @@
 // The Mitochondrial Power Plant. App shell: renderer, camera rig, state machine, UI.
+import { EF } from './effort.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -161,6 +162,7 @@ function drawChart() {
 const panel = $('#panelBody');
 const cites = (list) => `<p class="src">Source: ${list.map(cite).join(', ')}</p>`;
 const optLabel = (q, v) => (q.opts.find((o) => o[0] === v) || [0, 'No answer'])[1];
+EF.watch(() => (S.name === 'brief' ? 'Incident ' + (S.inc + 1) + ': ' + INCIDENTS[S.inc].name : null));
 const whyLabel = (inc, k) => (inc.why.opts.find((o) => o[0] === k) || [, 'none'])[1];
 function truth(inc) {
   const d = (v, b) => v > b * 1.15 ? 'up' : v < b * 0.85 ? 'down' : 'same', m = model;
@@ -199,7 +201,7 @@ function render() {
       `</tbody></table></div><h3>Your reasoning, played back</h3><div class="tw"><table><thead><tr><th>Incident</th><th>You predicted</th><th>Your reason</th></tr></thead><tbody>` +
       S.results.map((r) => { const inc = INCIDENTS.find((i) => i.id === r.id); return `<tr><th>${r.name}</th><td style="text-align:left">${inc.qs.map((q) => `${r.preds[q.id] === r.truth[q.id] ? '✓' : '✕'} ${q.label}: ${optLabel(q, r.preds[q.id]).toLowerCase()}${r.preds[q.id] === r.truth[q.id] ? '' : ' (it ' + optLabel(q, r.truth[q.id]).toLowerCase() + ')'}`).join('<br>')}</td><td style="text-align:left">${r.whyOk ? '✓' : '✕'} ${whyLabel(inc, r.preds.why)}${r.whyOk ? '' : '<br><small>Model: ' + whyLabel(inc, inc.why.ans) + '</small>'}</td></tr>`; }).join('') +
       `</tbody></table></div><p class="hint">Incidents with all three predictions right and a different reason: ${S.results.filter((r) => r.correct === 3 && !r.whyOk).length}. ${S.results.filter((r) => r.whyOk).length} of ${S.results.length} reasons matched the model.</p>
-      <h3>Three ideas to check against what you saw</h3><ul class="try">${MISCONCEPTIONS.map((m) => `<li>Common misconception: ${m}</li>`).join('')}</ul>
+      ${EF.html()}<h3>Three ideas to check against what you saw</h3><ul class="try">${MISCONCEPTIONS.map((m) => `<li>Common misconception: ${m}</li>`).join('')}</ul>
       <p class="src">Source: Clark, Douglas and Choi, <i>Biology 2e</i>, OpenStax, Chapter 7. CC BY 4.0. ${cite('7.1')}, ${cite('7.4')}, ${cite('7.5')}. The numbers come from an illustrative model. See About.</p>
       <div class="row"><button class="btn pri" data-act="lab">Open the free lab</button><button class="btn ghost" data-act="restart">Start over</button></div>`;
   } else if (n === 'lab') {
@@ -233,8 +235,8 @@ function act(a) {
   else if (a === 'skipTour') { S.tourDone = true; go('brief', 0); }
   else if (a === 'run') go('run');
   else if (a === 'next') { if (S.inc < 2) go('brief', S.inc + 1); else go('debrief'); }
-  else if (a === 'again') go('brief', S.inc);
-  else if (a === 'lab') go('lab');
+  else if (a === 'again') { EF.extra('Reran an incident'); go('brief', S.inc); }
+  else if (a === 'lab') { EF.extra('Opened the free lab'); go('lab'); }
   else if (a === 'debrief') go('debrief');
   else if (a === 'toIncidents') { S.tourDone = true; go('brief', 0); }
   else if (a === 'restart') { S.results = []; S.tourDone = false; micro.reset(); Object.assign(model, createModel()); hist.length = 0; marks.length = 0; go('tour', 0); }

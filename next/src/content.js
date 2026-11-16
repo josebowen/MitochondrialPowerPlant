@@ -77,7 +77,7 @@ export const ABOUT = `
 <li>Standard biochemistry has Complex IV pumping protons as well. §7.4 describes it taking up hydrogen ions to form water, so that is what is shown.</li>
 </ul>
 <h3>How your thinking is recorded</h3>
-<p>Before each incident runs you make three predictions and choose a reason. The page keeps them and shows them beside what the model did, in the result and in the debrief. A right prediction with a different reason is reported as that. Nothing is sent anywhere.</p>
+<p>Before each incident runs you make three predictions and choose a reason. The page keeps them and shows them beside what the model did, in the result and in the debrief. A right prediction with a different reason is reported as that. The debrief also reports time on open decisions, reruns and use of the free lab. Nothing is sent anywhere.</p>
 <h3>Simplifications</h3>
 <ul>
 <li>The numbers come from a small illustrative rate model, not a biochemical simulation. All gauges are relative to a normal steady state. There are no real units.</li>
