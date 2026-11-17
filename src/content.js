@@ -16,13 +16,13 @@ export const TOUR = [
     body: `<p>NADH hands electrons to Complex I. They pass to Q, then Complex III, then cytochrome c, then Complex IV. Watch one spark: it dims at each step because the electrons give up energy as they go.</p><p>FADH<sub>2</sub> delivers its electrons to Complex II. They bypass Complex I, so FADH<sub>2</sub> leads to fewer ATP than NADH.</p>`,
     cta: 'Next', cites: ['7.1', '7.4'] },
   { focus: 'ims', kicker: 'Orientation 2 of 4', title: 'Protons pile up',
-    body: `<p>The energy the electrons give up drives pumps. Complex I can move four hydrogen ions from the matrix into the intermembrane space. Complex III pumps too.</p><p>The amber crowd above the membrane is the gradient. It has two parts: a difference in concentration and a difference in charge.</p><p class="mis"><b>Common misconception:</b> the chain makes ATP directly. It does not. It pumps protons.</p>`,
+    body: `<p>The energy the electrons give up drives pumps. Complex I can move four hydrogen ions from the matrix into the intermembrane space. Complex III pumps too.</p><p>The amber crowd above the membrane is the gradient. It has two parts: a difference in concentration and a difference in charge.</p>`,
     cta: 'Next', cites: ['7.4'] },
   { focus: 'syn', kicker: 'Orientation 3 of 4', title: 'The turbine',
-    body: `<p>Protons can cross back into the matrix only through ATP synthase. Their flow turns the enzyme, and the turning adds a phosphate to ADP to make ATP. This is chemiosmosis. It makes about 90 percent of the ATP from aerobic glucose breakdown.</p><p class="mis"><b>Common misconception:</b> electrons pass through ATP synthase. Protons do. Electrons never leave the chain.</p>`,
+    body: `<p>Protons can cross back into the matrix only through ATP synthase. Their flow turns the enzyme, and the turning adds a phosphate to ADP to make ATP. This is chemiosmosis. It makes about 90 percent of the ATP from aerobic glucose breakdown.</p>`,
     cta: 'Next', cites: ['7.4'] },
   { focus: 'c4', kicker: 'Orientation 4 of 4', title: 'Oxygen waits at the end',
-    body: `<p>At Complex IV, oxygen accepts the spent electrons, picks up hydrogen ions and becomes water. Oxygen is the final electron acceptor. This chain is the only part of glucose metabolism that uses atmospheric oxygen.</p><p class="mis"><b>Common misconception:</b> the oxygen you breathe becomes carbon dioxide. It becomes water. CO<sub>2</sub> comes from earlier stages (${cite('7.3')}).</p><p>The plant is running. Three incidents are about to hit it. Before each one, you predict what happens.</p>`,
+    body: `<p>At Complex IV, oxygen accepts the spent electrons, picks up hydrogen ions and becomes water. Oxygen is the final electron acceptor. This chain is the only part of glucose metabolism that uses atmospheric oxygen.</p><p>The plant is running. Three incidents are about to hit it. Before each one, you predict what happens and say why.</p>`,
     cta: 'Start the incidents', cites: ['7.4'] },
 ];
 
@@ -31,6 +31,7 @@ export const INCIDENTS = [
   { id: 'cyanide', name: 'Cyanide', title: 'Cyanide at Complex IV', focus: 'c4run',
     brief: `<p>Cyanide inhibits cytochrome c oxidase, which is Complex IV. Electrons can no longer leave the chain there.</p><p>§7.4 poses this exact case and asks the reader to predict what follows.</p>`,
     qs: [{ id: 'ph', label: 'pH of the intermembrane space', opts: UDS }, { id: 'syn', label: 'ATP from ATP synthase', opts: UDS }, { id: 'o2', label: 'Oxygen use', opts: UDS }],
+    why: { q: 'Your reason. What stops first?', opts: [['syn', 'The ATP synthase rotor'], ['pump', 'Proton pumping by the chain'], ['back', 'Proton flow back to the matrix']], ans: 'pump', fb: 'Pumping stops first. With no electron flow there is nothing to drive the pumps. ATP synthase keeps turning until the gradient is spent.' },
     captions: [[0.6, 'Complex IV is blocked. Electrons cannot reach oxygen.'], [4.5, 'The chain backs up. Complexes I and III stop pumping.'], [8.5, 'Protons drain through ATP synthase. Nothing replaces them.']],
     explain: `<p>Complex IV could not pass electrons to oxygen, so the chain backed up and stopped. With no electron flow, Complexes I and III stopped pumping. The protons already in the intermembrane space drained back through ATP synthase, so the gradient fell and the pH there rose. ATP synthase stopped when the gradient ran out. Oxygen use fell to near zero because nothing was reducing oxygen to water.</p>`,
     beyond: 'The text asks this question and does not print an answer. This result is reasoned from §7.4 and shown with an illustrative model.',
@@ -39,14 +40,16 @@ export const INCIDENTS = [
   { id: 'dnp', name: 'Uncoupler', title: 'An uncoupler in the membrane', focus: 'overview',
     brief: `<p>DNP (dinitrophenol) is an uncoupler and a poison. It makes the inner membrane leaky to protons, so they can cross without passing through ATP synthase.</p><p>§7.4 poses this case too.</p>`,
     qs: [{ id: 'grad', label: 'Proton gradient', opts: UDS }, { id: 'atp', label: 'ATP rate', opts: UDS }, { id: 'o2', label: 'Oxygen use', opts: UDS }],
+    why: { q: 'Your reason. Where does the energy from the electrons go?', opts: [['heat', 'It leaves the cell as heat'], ['atp', 'It is stored as extra ATP'], ['grad', 'It builds a steeper gradient']], ans: 'heat', fb: 'It leaves as heat. The chain still releases energy, but with the gradient gone little of it is captured.' },
     captions: [[0.6, 'Protons pour back through the leaks.'], [4.5, 'The rotor slows. Few protons pass through ATP synthase.'], [8.5, 'The chain speeds up. The energy leaves as heat.']],
     explain: `<p>DNP let protons cross the membrane without passing through ATP synthase. The gradient collapsed, so the rotor slowed and ATP output fell. With little gradient to push against, the chain ran faster and used more oxygen. The energy from the electrons left as heat.</p>`,
     beyond: 'Beyond the text: §7.4 says DNP makes the membrane leaky to protons. Faster oxygen use and extra heat are standard biochemistry that §7.4 does not state.',
     mis: (p) => p.atp === 'up' ? 'An uncoupler does not give the cell more energy. The chain runs faster, but the energy leaves as heat, not ATP.' : p.o2 !== 'up' ? 'DNP does not block the chain. It removes the gradient the pumps push against, so electrons move faster and more oxygen is reduced to water.' : 'An uncoupler does not give the cell more energy. The chain runs faster, but the energy leaves as heat, not ATP.',
     cites: ['7.4'] },
   { id: 'o2', name: 'No oxygen', title: 'The sprint: oxygen runs out', focus: 'c4run',
-    brief: `<p>The muscle is now sprinting. It cannot get enough oxygen to sustain aerobic respiration. Oxygen at Complex IV falls toward zero.</p><p>Watch the cytosol readout at the lower left as well as the membrane.</p>`,
-    qs: [{ id: 'grad', label: 'Proton gradient', opts: UDS }, { id: 'lac', label: 'Lactate in the cytosol', opts: UDS }, { id: 'tot', label: 'Total ATP production in the cell', opts: [['zero', 'Stops completely'], ['cont', 'Falls but continues'], ['same', 'About the same']] }],
+    brief: `<p>The muscle is now sprinting. It cannot get enough oxygen to sustain aerobic respiration. Oxygen at Complex IV falls toward zero.</p>`,
+    qs: [{ id: 'grad', label: 'Proton gradient', opts: UDS }, { id: 'lac', label: 'Lactate in the cytosol', opts: UDS }, { id: 'tot', label: 'Total ATP production in the cell', opts: [['zero', 'Stops completely'], ['cont', 'Falls a long way'], ['same', 'About the same']] }],
+    why: { q: 'Your reason. What happens to the NADH the cell keeps making?', opts: [['pile', 'It builds up with nowhere to go'], ['chain', 'It still unloads at Complex I'], ['ferm', 'It hands electrons to pyruvate']], ans: 'ferm', fb: 'It hands its electrons to pyruvate. That is lactic acid fermentation, and it regenerates the NAD+ that glycolysis needs.' },
     captions: [[0.6, 'Oxygen is running out. Complex IV has nothing to hand electrons to.'], [4.5, 'The chain stops. Pumping stops. The gradient runs down.'], [8.5, 'In the cytosol, glycolysis keeps going. Lactate builds.']],
     explain: `<p>Oxygen is the final electron acceptor. Without it, Complex IV had nothing to hand electrons to and the chain stopped. Pumping stopped, the gradient ran down and ATP synthase stopped. In the cytosol, glycolysis kept making 2 ATP per glucose. Lactic acid fermentation turned pyruvate into lactate and regenerated NAD<sup>+</sup>, which glycolysis needs in order to continue.</p>`,
     beyond: '',
@@ -73,6 +76,8 @@ export const ABOUT = `
 <li>The model slows electron flow when the gradient is high (respiratory control). §7.4 does not describe this.</li>
 <li>Standard biochemistry has Complex IV pumping protons as well. §7.4 describes it taking up hydrogen ions to form water, so that is what is shown.</li>
 </ul>
+<h3>How your thinking is recorded</h3>
+<p>Before each incident runs you make three predictions and choose a reason. The page keeps them and shows them beside what the model did, in the result and in the debrief. A right prediction with a different reason is reported as that. The debrief also reports time on open decisions, reruns and use of the free lab. Nothing is sent anywhere.</p>
 <h3>Simplifications</h3>
 <ul>
 <li>The numbers come from a small illustrative rate model, not a biochemical simulation. All gauges are relative to a normal steady state. There are no real units.</li>
@@ -97,3 +102,9 @@ O2 use = J_e
 heat   = J_e − captured share</pre>
 <h3>Controls</h3>
 <p>Drag to look around. Scroll or pinch to zoom. Arrow keys also turn the view. All buttons and sliders work from the keyboard.</p>`;
+
+export const MISCONCEPTIONS = [
+  `the chain makes ATP directly. It does not. It pumps protons.`,
+  `electrons pass through ATP synthase. Protons do. Electrons never leave the chain.`,
+  `the oxygen you breathe becomes carbon dioxide. It becomes water. CO<sub>2</sub> comes from earlier stages (${cite('7.3')}).`,
+];

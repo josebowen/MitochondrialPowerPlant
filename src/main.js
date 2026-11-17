@@ -1,4 +1,5 @@
 // The Mitochondrial Power Plant. App shell: renderer, camera rig, state machine, UI.
+import { EF } from './effort.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -7,7 +8,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { createMacro } from './macro.js';
 import { createMicro, wave } from './micro.js';
 import { DEFAULTS, createModel, step, steadyState } from './model.js';
-import { TOUR, INCIDENTS, OBJECTIVES, ABOUT, cite } from './content.js';
+import { TOUR, INCIDENTS, OBJECTIVES, ABOUT, MISCONCEPTIONS, cite } from './content.js';
 import { clamp, lerp, ease } from './fx.js';
 
 const $ = (s) => document.querySelector(s);
@@ -161,6 +162,8 @@ function drawChart() {
 const panel = $('#panelBody');
 const cites = (list) => `<p class="src">Source: ${list.map(cite).join(', ')}</p>`;
 const optLabel = (q, v) => (q.opts.find((o) => o[0] === v) || [0, 'No answer'])[1];
+EF.watch(() => (S.name === 'brief' ? 'Incident ' + (S.inc + 1) + ': ' + INCIDENTS[S.inc].name : null));
+const whyLabel = (inc, k) => (inc.why.opts.find((o) => o[0] === k) || [, 'none'])[1];
 function truth(inc) {
   const d = (v, b) => v > b * 1.15 ? 'up' : v < b * 0.85 ? 'down' : 'same', m = model;
   const all = { grad: d(m.G, base.G), ph: d(base.G, m.G), syn: d(m.synth, base.synth), atp: d(m.atp, base.atp), o2: d(m.J, base.J), lac: m.lactate > 0.1 ? 'up' : 'same', tot: m.atp < 0.02 * base.atp ? 'zero' : m.atp < 0.85 * base.atp ? 'cont' : 'same' };
@@ -174,10 +177,11 @@ function render() {
     const t = TOUR[S.tour];
     h = `<p class="kick">${t.kicker}</p><h2 tabindex="-1">${t.title}</h2>${t.body}${cites(t.cites)}<div class="row"><button class="btn pri" data-act="tourNext">${t.cta}</button>${S.tour > 0 && S.tour < 4 ? '<button class="btn ghost" data-act="skipTour">Skip to the incidents</button>' : ''}</div>`;
   } else if (n === 'brief') {
-    const inc = INCIDENTS[S.inc], ready = inc.qs.every((q) => S.preds[q.id]);
+    const inc = INCIDENTS[S.inc], ready = inc.qs.every((q) => S.preds[q.id]) && !!S.preds.why;
     h = `<p class="kick alert">Incident ${S.inc + 1} of 3</p><h2 tabindex="-1">${inc.title}</h2>${inc.brief}<h3>Predict before you run it</h3>` +
       inc.qs.map((q) => `<fieldset class="q"><legend>${q.label}</legend><div class="seg">${q.opts.map(([v, l]) => `<label><input type="radio" name="${q.id}" value="${v}" ${S.preds[q.id] === v ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></fieldset>`).join('') +
-      `<div class="row"><button class="btn pri" data-act="run" ${ready ? '' : 'disabled'}>Run it</button><span class="hint" id="runhint">${ready ? '' : 'Choose all three to continue.'}</span></div>`;
+      `<fieldset class="q"><legend>${inc.why.q}</legend><div class="seg" style="grid-template-columns:1fr">${inc.why.opts.map(([v, l]) => `<label><input type="radio" name="why" value="${v}" ${S.preds.why === v ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></fieldset>` +
+      `<div class="row"><button class="btn pri" data-act="run" ${ready ? '' : 'disabled'}>Run it</button><span class="hint" id="runhint">${ready ? '' : 'Make all four choices to continue.'}</span></div>`;
   } else if (n === 'run') {
     const inc = INCIDENTS[S.inc];
     h = `<p class="kick alert">Incident ${S.inc + 1} of 3 · running</p><h2 tabindex="-1">${inc.title}</h2><div class="prog"><i id="runbar"></i></div><ul class="log" id="runlog"></ul><p class="hint">Watch the membrane and the four gauges.</p>`;
@@ -185,7 +189,8 @@ function render() {
     const inc = INCIDENTS[S.inc], r = S.last, last = S.inc === 2;
     h = `<p class="kick">Incident ${S.inc + 1} of 3 · result</p><h2 tabindex="-1">${r.correct} of 3 predictions correct</h2><ul class="verdict">` +
       inc.qs.map((q) => { const ok = r.preds[q.id] === r.truth[q.id]; return `<li class="${ok ? 'ok' : 'no'}"><span class="mark" aria-hidden="true">${ok ? '✓' : '✕'}</span><div><b>${q.label}: ${optLabel(q, r.truth[q.id]).toLowerCase()}</b><small>${ok ? 'Correct.' : 'You predicted: ' + optLabel(q, r.preds[q.id]).toLowerCase() + '.'}</small></div></li>`; }).join('') +
-      `</ul>${inc.explain}<p class="mis"><b>${r.correct === 3 ? 'Common misconception' : 'Check this idea'}:</b> ${inc.mis(r.preds)}</p>${inc.beyond ? `<p class="beyond">${inc.beyond}</p>` : ''}${cites(inc.cites)}
+      `<li class="${r.whyOk ? 'ok' : 'no'}"><span class="mark" aria-hidden="true">${r.whyOk ? '✓' : '✕'}</span><div><b>Your reason: ${whyLabel(inc, r.preds.why)}</b><small>${r.whyOk ? '' : 'The model: ' + whyLabel(inc, inc.why.ans) + '. '}${inc.why.fb}</small></div></li>` +
+      `</ul>${r.correct === 3 && !r.whyOk ? '<p class="mis"><b>Right outcome, different reason.</b> All three predictions held, but the first step you chose is not what drove them.</p>' : ''}${inc.explain}<p class="mis"><b>${r.correct === 3 ? 'Common misconception' : 'Check this idea'}:</b> ${inc.mis(r.preds)}</p>${inc.beyond ? `<p class="beyond">${inc.beyond}</p>` : ''}${cites(inc.cites)}
       <div class="row"><button class="btn pri" data-act="next">${last ? 'See the debrief' : 'Restore the plant. Next incident'}</button><button class="btn ghost" data-act="again">Run it again</button></div>`;
   } else if (n === 'debrief') {
     const tot = S.results.reduce((a, r) => a + r.correct, 0), runs = INCIDENTS.map((inc) => [...S.results].reverse().find((r) => r.id === inc.id)).filter(Boolean);
@@ -193,7 +198,11 @@ function render() {
       OBJECTIVES.map(([t, s], i) => `<li class="${(i < 2 ? S.tourDone : runs.length === 3) ? 'ok' : ''}"><span class="mark" aria-hidden="true">${(i < 2 ? S.tourDone : runs.length === 3) ? '✓' : '○'}</span><div>${t} <small>${s}</small></div></li>`).join('') +
       `</ul><h3>Your runs, as percent of normal</h3><div class="tw"><table><thead><tr><th>Incident</th><th>Gradient</th><th>ATP</th><th>O<sub>2</sub> use</th><th>Heat</th><th>Correct</th></tr></thead><tbody>` +
       S.results.map((r) => `<tr><th>${r.name}</th><td>${r.v.grad}</td><td>${r.v.atp}</td><td>${r.v.o2}</td><td>${r.v.heat}</td><td>${r.correct}/3</td></tr>`).join('') +
-      `</tbody></table></div><p class="src">Source: Clark, Douglas and Choi, <i>Biology 2e</i>, OpenStax, Chapter 7. CC BY 4.0. ${cite('7.1')}, ${cite('7.4')}, ${cite('7.5')}. The numbers come from an illustrative model. See About.</p>
+      `</tbody></table></div><h3>Your reasoning, played back</h3><div class="tw"><table><thead><tr><th>Incident</th><th>You predicted</th><th>Your reason</th></tr></thead><tbody>` +
+      S.results.map((r) => { const inc = INCIDENTS.find((i) => i.id === r.id); return `<tr><th>${r.name}</th><td style="text-align:left">${inc.qs.map((q) => `${r.preds[q.id] === r.truth[q.id] ? '✓' : '✕'} ${q.label}: ${optLabel(q, r.preds[q.id]).toLowerCase()}${r.preds[q.id] === r.truth[q.id] ? '' : ' (it ' + optLabel(q, r.truth[q.id]).toLowerCase() + ')'}`).join('<br>')}</td><td style="text-align:left">${r.whyOk ? '✓' : '✕'} ${whyLabel(inc, r.preds.why)}${r.whyOk ? '' : '<br><small>Model: ' + whyLabel(inc, inc.why.ans) + '</small>'}</td></tr>`; }).join('') +
+      `</tbody></table></div><p class="hint">Incidents with all three predictions right and a different reason: ${S.results.filter((r) => r.correct === 3 && !r.whyOk).length}. ${S.results.filter((r) => r.whyOk).length} of ${S.results.length} reasons matched the model.</p>
+      ${EF.html()}<h3>Three ideas to check against what you saw</h3><ul class="try">${MISCONCEPTIONS.map((m) => `<li>Common misconception: ${m}</li>`).join('')}</ul>
+      <p class="src">Source: Clark, Douglas and Choi, <i>Biology 2e</i>, OpenStax, Chapter 7. CC BY 4.0. ${cite('7.1')}, ${cite('7.4')}, ${cite('7.5')}. The numbers come from an illustrative model. See About.</p>
       <div class="row"><button class="btn pri" data-act="lab">Open the free lab</button><button class="btn ghost" data-act="restart">Start over</button></div>`;
   } else if (n === 'lab') {
     const sl = (id, name) => `<label class="sl"><span><span>${name}</span><b id="o-${id}">${Math.round(ctl[id] * 100)}%</b></span><input type="range" min="0" max="1" step="0.01" value="${ctl[id]}" data-ctl="${id}"></label>`;
@@ -209,7 +218,7 @@ function render() {
 }
 panel.addEventListener('change', (e) => {
   const t = e.target;
-  if (t.type === 'radio') { S.preds[t.name] = t.value; const inc = INCIDENTS[S.inc], ready = inc.qs.every((q) => S.preds[q.id]); panel.querySelector('[data-act=run]').disabled = !ready; $('#runhint').textContent = ready ? '' : 'Choose all three to continue.'; }
+  if (t.type === 'radio') { S.preds[t.name] = t.value; const inc = INCIDENTS[S.inc], ready = inc.qs.every((q) => S.preds[q.id]) && !!S.preds.why; panel.querySelector('[data-act=run]').disabled = !ready; $('#runhint').textContent = ready ? '' : 'Make all four choices to continue.'; }
   if (t.type === 'checkbox' && t.dataset.ctl) { ctl[t.dataset.ctl] = t.checked; marks.push({ t: S.T, name: (t.dataset.ctl === 'dnp' ? 'DNP ' : 'Cyanide ') + (t.checked ? 'on' : 'off') }); }
 });
 panel.addEventListener('input', (e) => { const t = e.target; if (t.type === 'range') { ctl[t.dataset.ctl] = parseFloat(t.value); $('#o-' + t.dataset.ctl).textContent = Math.round(t.value * 100) + '%'; } });
@@ -225,9 +234,9 @@ function act(a) {
   else if (a === 'tourNext') { if (S.tour === 0) { Object.assign(ctl, DEFAULTS); marks.push({ t: S.T, name: 'NADH on' }); } if (S.tour < TOUR.length - 1) { S.tour++; setView(TOUR[S.tour].focus); render(); } else { S.tourDone = true; go('brief', 0); } }
   else if (a === 'skipTour') { S.tourDone = true; go('brief', 0); }
   else if (a === 'run') go('run');
-  else if (a === 'next') { if (S.inc < 2) go('brief', S.inc + 1); else go('debrief'); }
-  else if (a === 'again') go('brief', S.inc);
-  else if (a === 'lab') go('lab');
+  else if (a === 'next') { EF.resolved(); if (S.inc < 2) go('brief', S.inc + 1); else go('debrief'); }
+  else if (a === 'again') { EF.extra('Reran an incident'); go('brief', S.inc); }
+  else if (a === 'lab') { EF.extra('Opened the free lab'); go('lab'); }
   else if (a === 'debrief') go('debrief');
   else if (a === 'toIncidents') { S.tourDone = true; go('brief', 0); }
   else if (a === 'restart') { S.results = []; S.tourDone = false; micro.reset(); Object.assign(model, createModel()); hist.length = 0; marks.length = 0; go('tour', 0); }
@@ -269,7 +278,8 @@ function go(name, arg) {
 }
 function finishRun() {
   const inc = INCIDENTS[S.inc], tr = truth(inc); let correct = 0; for (const q of inc.qs) if (S.preds[q.id] === tr[q.id]) correct++;
-  S.last = { id: inc.id, name: inc.name, preds: { ...S.preds }, truth: tr, correct, v: vals() };
+  S.last = { id: inc.id, name: inc.name, preds: { ...S.preds }, truth: tr, correct, whyOk: S.preds.why === inc.why.ans, v: vals() };
+  EF.resolved(); EF.mark({ ok: correct === inc.qs.length && S.last.whyOk }); if (!(correct === inc.qs.length && S.last.whyOk)) EF.wrong();
   S.results = S.results.filter((r) => r.id !== inc.id); S.results.push(S.last);
   S.results.sort((x, y) => INCIDENTS.findIndex((i) => i.id === x.id) - INCIDENTS.findIndex((i) => i.id === y.id));
   S.name = 'result'; say(''); render();
